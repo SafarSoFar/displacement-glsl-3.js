@@ -11,14 +11,19 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 var clock = new THREE.Clock();
+const waves = {
+  amplitude: 0.1,
+  speed: 0.01
+};
 const gui = new GUI();
-// gui.add(cubePos, 'x', 1, 360);
-// gui.add(cubePos, 'y', 1, 360);
-// gui.add(cubePos, 'z', 1, 360);
+gui.add(waves, 'amplitude', 0.1, 1.0);
+gui.add(waves, 'speed', 0.01, 0.2);
 
-const geometry = new THREE.PlaneGeometry(5, 5, 4, 100);
+
+const geometry = new THREE.PlaneGeometry(5, 5, 100, 10);
 const mat = new THREE.Material();
 const plane = new THREE.LineSegments(geometry, mat);
+
 plane.rotation.x = 5;
 scene.add(plane);
 camera.position.z = 5;
@@ -28,12 +33,14 @@ renderer.setAnimationLoop(animate);
 
 var colorA = new THREE.Color(0xff0000);
 var colorB = new THREE.Color(0x0000ff);
+var angle = 0;
 
 function animate() {
-
+  angle++;
   const shaderMat = new THREE.ShaderMaterial({
     uniforms: {
-      time: { type: 'float', value: clock.getElapsedTime() * 2 },
+      amplitude: { type: 'float', value: waves.amplitude },
+      speed: { type: 'float', value: waves.speed * angle },
       colorA: { type: 'vec3', value: colorA },
       colorB: { type: 'vec3', value: colorB },
     },
@@ -52,12 +59,13 @@ function animate() {
 function vertexShader() {
   return `
     varying vec3 vUv; 
-    uniform float time;
+    uniform float amplitude;
+    uniform float speed;
 
     void main() {
       vUv = position; 
       vec3 pos = position;
-      pos.z = sin(pos.x + pos.y * time);
+      pos.z = sin(pos.x + pos.y * speed) * amplitude;
       vec4 modelViewPosition = modelViewMatrix * vec4(pos,1.0);
       gl_Position = projectionMatrix * modelViewPosition;
     }
